@@ -1,0 +1,35 @@
+{
+  "name": "eventhub",
+  "version": "1.0.0",
+  "description": "EventHub for Windows Azure",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "event",
+    "hub"
+  ],
+  "author": "Martin Lang-Roman <martin@winc.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "del": "^2.2.0",
+    "eslint": "^2.9.0",
+    "eslint-config-airbnb-base": "^3.0.1",
+    "eslint-plugin-import": "^1.7.0",
+    "gulp": "^3.9.1",
+    "gulp-mocha": "^2.2.0",
+    "gulp-sourcemaps": "^1.6.0",
+    "gulp-typescript": "^2.13.4",
+    "mocha": "^2.4.5",
+    "require-dir": "^0.3.0",
+    "run-sequence": "^1.1.5",
+    "sinon": "^1.17.4",
+    "tslint": "^3.9.0",
+    "typescript": "^1.8.10"
+  },
+  "dependencies": {
+    "moment": "^2.13.0"
+  }
+}
