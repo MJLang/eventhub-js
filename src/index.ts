@@ -1,11 +1,2 @@
-'use strict';
-
-const config = {
-  namespace: '',
-  hubName: '',
-  keyName: '',
-  key: ''
-};
-
-
-
+export {EventHubClient} from './client';
+export * from './auth';

@@ -16,6 +16,26 @@ describe('Client', () => {
   beforeEach(() => {
     nock.cleanAll();
   });
+
+  describe('General', () => {
+    it('Should emit an event if the token is wrong', (done) => {
+      let token = auth.createSASToken(config.namespace, config.hubname, 'dasdada', config.name);
+
+      let client = new EventHubClient(token, {batching: false});
+      let event = new BaseEvent({EventText: 'Test', EventSource: 'Test 1'});
+      
+      client.send(event);
+      let eventFired = false;
+      
+      client.on('invalidToken', () => {
+        eventFired = true;
+      });
+      setTimeout(() => {
+        expect(eventFired).to.be.true;
+        done();
+      }, 200);
+    });
+  });
   
   describe('#sendSingleEvent(event)', () => {
     it('Should be able to send a single event', () => {
@@ -61,7 +81,8 @@ describe('Client', () => {
               .post('/messages')
               .reply(200);
       
-      //  let token = auth.createSASToken(config.namespace, config.hubname, config.key, config.name);
+      //  let token = auth.createSASToken(config.namespace, config.hubname, 'dasdada', config.name);
+       
       let client = new EventHubClient(token, {batching: true, batchSize: (2 * 1024)});
       let wa = times(50, (i) => {
         let event = new BaseEvent();
@@ -75,7 +96,8 @@ describe('Client', () => {
       });
       Promise.all(wa).then(() => {
         setTimeout(() => {
-          expect(batchSends).to.be.equal(4);
+          expect(batchSends).to.be.equal(5);
+          client.stopBatch();
           done();
         }, 1500);
       }).catch((err) => {

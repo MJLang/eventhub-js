@@ -57,12 +57,24 @@ export class EventHubClient extends EventEmitter {
     this._runBatch();
   }
   
+  public refreshToken(token: SASToken) {
+    this.key = token;
+    if (this.batching) {
+      this.startBatch();
+    }
+  }
+
   private _sendSingleEvent(event: BaseEvent) {
     return new Promise((resolve, reject) => {
       this._sendEvent(event).then((res) => {
         return resolve();
       })
       .catch((res) => {
+        if (res.status === 401) {
+          this.emit('invalidToken');
+        } else {
+          this.emit('httpErr', res.status);
+        }
         return reject();
       });
     });
@@ -75,7 +87,7 @@ export class EventHubClient extends EventEmitter {
     });
   }
   
-  private _sendEvent(payload: BaseEvent | Array<BaseEvent>) {
+  private _sendEvent(payload: BaseEvent | Array<BaseEvent>): Axios.IPromise<Axios.AxiosXHR<{}>> {
     // console.log(payload);
     return axios.post(this.key.uri, payload, {
       headers: {
@@ -108,8 +120,12 @@ export class EventHubClient extends EventEmitter {
                   this.events = [event];
                   this.startBatch();
                 })
-                .catch((res) => {
-                  console.log(res);
+                .catch((res: Axios.AxiosXHR<{}>) => {
+                  if (res.status === 401) {
+                    this.emit('invalidToken');
+                  } else {
+                    this.emit('httpErr', res.status);
+                  }
                 });
           } else {
             this.events.push(event);
