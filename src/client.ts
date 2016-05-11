@@ -1,0 +1,129 @@
+'use strict';
+
+import * as axios from 'axios';
+import {SASToken} from './interfaces/token';
+import {BaseEvent} from './models/event';
+import {EventEmitter} from 'events';
+
+
+export class EventHubClient extends EventEmitter {
+  public events: Array<BaseEvent> = [];
+  public eventPool: Array<BaseEvent> = [];
+  
+  private batching: boolean;
+  private batchSize: number;
+  private locked: boolean;
+  private intervalTimer: number;
+  
+  private batchTimer: NodeJS.Timer;
+  
+  constructor(private key: SASToken, configParams?: EventHubClientConfig) {
+    super();
+    let config: EventHubClientConfig = {
+      batching: true,
+      batchSize: (1025 * 200),
+      intervalTimer: 20
+    };
+    Object.assign(config, configParams);
+    this.batching = config && config.batching;
+    this.batchSize = config && config.batchSize;  // 200kb default
+    this.intervalTimer = config && config.intervalTimer;
+    
+
+    if (this.batching) {
+      this.startBatch();
+    }
+  }
+  
+  public send(event: BaseEvent) {
+    if (!this.batching) {
+      return this._sendSingleEvent(event);
+    } else {
+      return this._batchEvent(event).then(() => {
+        return this.emit('added');
+      });
+    }
+  }
+  
+  public stopBatch() {
+    this.locked = true;
+    if (this.batchTimer) {
+      clearInterval(this.batchTimer);
+    }
+  }
+
+  public startBatch() {
+    this.locked = false;
+    this._runBatch();
+  }
+  
+  private _sendSingleEvent(event: BaseEvent) {
+    return new Promise((resolve, reject) => {
+      this._sendEvent(event).then((res) => {
+        return resolve();
+      })
+      .catch((res) => {
+        return reject();
+      });
+    });
+  }
+  
+  private _batchEvent(event: BaseEvent) {
+    return new Promise((resolve, reject) => {
+      this.eventPool.push(event);
+      resolve();
+    });
+  }
+  
+  private _sendEvent(payload: BaseEvent | Array<BaseEvent>) {
+    // console.log(payload);
+    return axios.post(this.key.uri, payload, {
+      headers: {
+        'Authorization': this.key.token,
+        'Content-Length': JSON.stringify(payload).length,
+        'Content-Type': 'application/atom+xml;type=entry;charset=utf-8'
+      }
+    });
+  }
+
+  private _batchFull(newEvent: BaseEvent): boolean {
+    const arrayCopy = this.events.slice();
+    arrayCopy.push(newEvent);
+    const json = JSON.stringify(arrayCopy);
+    const bytes = Buffer.byteLength(json);
+    return bytes >= this.batchSize;
+  }
+
+
+  private _runBatch(): void {
+    this.batchTimer = setInterval(() => {
+      if (!this.locked) {
+        if (this.eventPool.length > 0) {
+          let event = this.eventPool.shift();
+          if (this._batchFull(event)) {
+            this.stopBatch();
+            this.emit('sendBatch');
+            this._sendEvent(this.events)
+                .then((res) => {
+                  this.events = [event];
+                  this.startBatch();
+                })
+                .catch((res) => {
+                  console.log(res);
+                });
+          } else {
+            this.events.push(event);
+          }
+        }
+      }
+    }, this.intervalTimer);
+
+  }
+}
+
+
+export interface EventHubClientConfig {
+  batching?: boolean;
+  batchSize?: number;
+  intervalTimer?: number;
+}

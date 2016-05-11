@@ -4,10 +4,17 @@ import { SASToken } from './interfaces/token';
 
 export let currentTokens: {[uri: string]: SASToken} = {};
 
-export function createSASToken(uri: string, key: string, keyName: string): SASToken {
-  if (!uri || !key || !keyName) {
+export function resetTokens(): void {
+  currentTokens = {};
+}
+
+export function createSASToken(hubnamespace: string, hubname: string, key: string, keyName: string): SASToken {
+  
+  if (!hubnamespace || !key || !keyName) {
     throw new Error('Missing Params');
   }
+  
+  const uri = `https://${hubnamespace}.servicebus.windows.net/${hubname}/messages`;
   const expiration = moment().add(15, 'days').unix();
   const toSign = `${encodeURIComponent(uri)}\n${expiration}`;
   const hmac = createHmac('sha256', key);
@@ -19,9 +26,11 @@ export function createSASToken(uri: string, key: string, keyName: string): SASTo
   const sasToken = {
     token: token,
     expiration: expiration,
+    namespace: hubnamespace,
+    hubname: hubname,
     uri: uri
   };
-  currentTokens[uri] = sasToken;
+  currentTokens[hubnamespace] = sasToken;
   return sasToken;
 }
 
@@ -33,7 +42,7 @@ export function findToken(uri: string): SASToken {
   }
 }
 
-export function resetTokens(): void {
-  currentTokens = {};
-}
+
+
+
 

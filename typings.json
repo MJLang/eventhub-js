@@ -1,7 +1,10 @@
 {
   "version": false,
-  "dependencies": {},
+  "dependencies": {
+    "node-uuid": "registry:npm/node-uuid#1.4.7+20160503013124"
+  },
   "ambientDependencies": {
+    "axios": "registry:dt/axios#0.9.1+20160317120654",
     "node": "registry:dt/node#4.0.0+20160509154515"
   },
   "ambientDevDependencies": {
@@ -9,6 +12,10 @@
   },
   "devDependencies": {
     "chai": "registry:npm/chai#3.5.0+20160415060238",
-    "sinon": "registry:npm/sinon#1.16.0+20160427193336"
+    "chai-as-promised": "registry:npm/chai-as-promised#5.1.0+20160310030142",
+    "lodash": "registry:npm/lodash#4.0.0+20160416211519",
+    "nock": "registry:npm/nock#0.7.0+20160211003958",
+    "sinon": "registry:npm/sinon#1.16.0+20160427193336",
+    "source-map-support": "registry:npm/source-map-support#0.3.0+20160413183746"
   }
 }
