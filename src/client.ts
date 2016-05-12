@@ -67,7 +67,7 @@ export class EventHubClient extends EventEmitter {
   private _sendSingleEvent(event: BaseEvent) {
     return new Promise((resolve, reject) => {
       this._sendEvent(event).then((res) => {
-        return resolve();
+        return resolve(true);
       })
       .catch((res) => {
         if (res.status === 401) {
@@ -75,7 +75,7 @@ export class EventHubClient extends EventEmitter {
         } else {
           this.emit('httpErr', res.status);
         }
-        return reject();
+        return reject(false);
       });
     });
   }
