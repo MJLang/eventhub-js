@@ -4,3 +4,11 @@ tests
 
 src
 tasks
+
+typings
+gulpfile.js
+.eslintrc
+.editorconfig
+tsconfig.json
+tslint.json
+typings.json
