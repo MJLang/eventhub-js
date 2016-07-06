@@ -2,8 +2,8 @@
   "name": "eventhub-js",
   "version": "1.0.2",
   "description": "EventHub for Windows Azure",
-  "main": "lib/index.js",
-  "typings": "index.d.ts",
+  "main": "./lib/index.js",
+  "typings": "./index.d.ts",
   "scripts": {
     "test": "gulp mocha",
     "build": "gulp build"
