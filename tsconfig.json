@@ -10,10 +10,9 @@
     "experimentalDecorators": true,
     "target": "es6"
   },
-  "exclude": [
-    "node_modules",
-    "typings/browser.d.ts",
-    "typings/browser/**/*.d.ts"
+  "include": [
+    "src",
+    "node_modules/@types/**/*.d.ts"
   ],
   "compileOnSave": false,
   "buildOnSave": false,
