@@ -11,7 +11,7 @@
     "target": "es6"
   },
   "include": [
-    "src",
+    "src/**/*.ts",
     "node_modules/@types/**/*.d.ts"
   ],
   "compileOnSave": false,

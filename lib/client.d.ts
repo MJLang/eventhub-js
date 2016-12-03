@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { SASToken } from './interfaces/token';
 import { BaseEvent } from './models/event';
 import { EventEmitter } from 'events';

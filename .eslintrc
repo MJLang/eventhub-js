@@ -1,6 +1,10 @@
 {
   "extends": "airbnb-base",
   "rules": {
-    "max-len": [2, 150]
+    "max-len": [2, 150],
+    "import/no-extraneous-dependencies": [
+      "error",
+      {"devDependencies": ["**/tests/**/*.*", "**/tasks/**/*.js"]}
+    ]
   }
 }
