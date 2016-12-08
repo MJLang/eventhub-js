@@ -14,6 +14,10 @@
   },
   "author": "Martin Lang-Roman <martin@mercator.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mjlang/eventhub-js"
+  },
   "devDependencies": {
     "@types/axios": "^0.9.34",
     "@types/moment": "^2.13.0",
