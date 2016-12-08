@@ -45,7 +45,8 @@ CLIENT.on('sendBatch', () => {
 ```
 
 `added` - An Event got added to its batch
-`sendBatch` -
+`sendBatch` - Batch was sent to Eventhub
 `invalidToken` - Authentication Rejected for SASToken
 `httpErr` - STATUSCODE - HTTP Error when sending events to eventhub
+
 
