@@ -16,11 +16,13 @@ export declare class EventHubClient extends EventEmitter {
     stopBatch(): void;
     startBatch(): void;
     refreshToken(token: SASToken): void;
+    sendBatch(): void;
     private _sendSingleEvent(event);
     private _batchEvent(event);
     private _sendEvent(payload);
     private _batchFull(newEvent);
     private _runBatch();
+    private _sendBatch();
 }
 export interface EventHubClientConfig {
     batching?: boolean;
