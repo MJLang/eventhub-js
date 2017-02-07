@@ -9,14 +9,13 @@ import {EventEmitter} from 'events';
 export class EventHubClient extends EventEmitter {
   public events: Array<BaseEvent> = [];
   public eventPool: Array<BaseEvent> = [];
-  
   private batching: boolean;
   private batchSize: number;
   private locked: boolean;
   private intervalTimer: number;
-  
+
   private batchTimer: NodeJS.Timer;
-  
+
   constructor(private key: SASToken, configParams?: EventHubClientConfig) {
     super();
     let config: EventHubClientConfig = {
@@ -28,13 +27,12 @@ export class EventHubClient extends EventEmitter {
     this.batching = config && config.batching;
     this.batchSize = config && config.batchSize;  // 200kb default
     this.intervalTimer = config && config.intervalTimer;
-    
 
     if (this.batching) {
       this.startBatch();
     }
   }
-  
+
   public send(event: BaseEvent) {
     if (!this.batching) {
       return this._sendSingleEvent(event);
@@ -44,7 +42,8 @@ export class EventHubClient extends EventEmitter {
       });
     }
   }
-  
+
+
   public stopBatch() {
     this.locked = true;
     if (this.batchTimer) {
@@ -56,12 +55,16 @@ export class EventHubClient extends EventEmitter {
     this.locked = false;
     this._runBatch();
   }
-  
+
   public refreshToken(token: SASToken) {
     this.key = token;
     if (this.batching) {
       this.startBatch();
     }
+  }
+
+  public sendBatch() {
+    this._sendBatch();
   }
 
   private _sendSingleEvent(event: BaseEvent) {
@@ -79,14 +82,14 @@ export class EventHubClient extends EventEmitter {
       });
     });
   }
-  
+
   private _batchEvent(event: BaseEvent) {
     return new Promise((resolve, reject) => {
       this.eventPool.push(event);
       resolve();
     });
   }
-  
+
   private _sendEvent(payload: BaseEvent | Array<BaseEvent>): Axios.IPromise<Axios.AxiosXHR<{}>> {
     // console.log(payload);
     return axios.post(this.key.uri, payload, {
@@ -113,20 +116,8 @@ export class EventHubClient extends EventEmitter {
         if (this.eventPool.length > 0) {
           let event = this.eventPool.shift();
           if (this._batchFull(event)) {
-            this.stopBatch();
-            this.emit('sendBatch');
-            this._sendEvent(this.events)
-                .then((res) => {
-                  this.events = [event];
-                  this.startBatch();
-                })
-                .catch((res: Axios.AxiosXHR<{}>) => {
-                  if (res.status === 401) {
-                    this.emit('invalidToken');
-                  } else {
-                    this.emit('httpErr', res.status);
-                  }
-                });
+            this._sendBatch();
+            this.events = [event];
           } else {
             this.events.push(event);
           }
@@ -134,6 +125,22 @@ export class EventHubClient extends EventEmitter {
       }
     }, this.intervalTimer);
 
+  }
+
+  private _sendBatch() {
+    this.stopBatch();
+    this.emit('sendBatch');
+    this._sendEvent(this.events)
+        .then((res) => {
+          this.startBatch();
+        })
+        .catch((res: Axios.AxiosXHR<{}>) => {
+          if (res.status === 401) {
+            this.emit('invalidToken');
+          } else {
+            this.emit('httpErr', res.status);
+          }
+        });
   }
 }
 
