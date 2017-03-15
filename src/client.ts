@@ -13,24 +13,37 @@ export class EventHubClient extends EventEmitter {
   private batchSize: number;
   private locked: boolean;
   private intervalTimer: number;
+  private autoSend: boolean;
+  private autoSendTimer: number;
+
 
   private batchTimer: NodeJS.Timer;
+  private autoSendToken: NodeJS.Timer;
 
   constructor(private key: SASToken, configParams?: EventHubClientConfig) {
     super();
     let config: EventHubClientConfig = {
       batching: true,
       batchSize: (1025 * 200),
-      intervalTimer: 20
+      intervalTimer: 20,
+      autoSend: false,
+      autoSendTimer: (1000 * 60 * 20) // 20 Minutes
     };
     Object.assign(config, configParams);
     this.batching = config && config.batching;
     this.batchSize = config && config.batchSize;  // 200kb default
     this.intervalTimer = config && config.intervalTimer;
+    this.autoSend = config && config.autoSend;
+    this.autoSendTimer = config && config.autoSendTimer;
 
     if (this.batching) {
       this.startBatch();
+
+      if (this.autoSend) {
+        this._enableAutoSend();
+      }
     }
+
   }
 
   public send(event: BaseEvent) {
@@ -65,6 +78,14 @@ export class EventHubClient extends EventEmitter {
 
   public sendBatch() {
     this._sendBatch();
+  }
+
+  private _enableAutoSend() {
+    this.autoSendToken = setInterval(() => {
+      if (this.events.length > 0) {
+        this.sendBatch();
+      }
+    }, this.autoSendTimer);
   }
 
   private _sendSingleEvent(event: BaseEvent) {
@@ -149,4 +170,6 @@ export interface EventHubClientConfig {
   batching?: boolean;
   batchSize?: number;
   intervalTimer?: number;
+  autoSend?: boolean;
+  autoSendTimer?: number;
 }
